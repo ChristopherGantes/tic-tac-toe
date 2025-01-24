@@ -2,34 +2,26 @@ function createPlayer(name, marker) {
   let score = 0;
   const getScore = () => score;
   const incrementScore = () => score++;
-  return { name, marker, getScore, incrementScore };
+  const resetScore = () => (score = 0);
+  return { name, marker, resetScore, getScore, incrementScore };
 }
 
 const game = (function () {
   let playerOne;
   let playerTwo;
-  let currentMarker;
+  let currentPlayer;
   let turn = 1;
 
-  let board = [new Array(3), new Array(3), new Array(3)];
+  let board = [
+    new Array(3).fill(null),
+    new Array(3).fill(null),
+    new Array(3).fill(null),
+  ];
 
-  function resetGameBoard() {
-    board = [new Array(3), new Array(3), new Array(3)];
-  }
-
-  function initiatePlayers(player1, player2) {
-    playerOne = player1;
-    playerTwo = player2;
-    currentMarker = player1.marker;
-  }
-
-  function changeTurn() {
-    turn++;
-    if (turn % 2 === 1) {
-      currentMarker = playerOne.marker;
-    } else {
-      currentMarker = playerTwo.marker;
-    }
+  function initiatePlayers(nameOne, nameTwo) {
+    playerOne = createPlayer(nameOne, "X");
+    playerTwo = createPlayer(nameTwo, "O");
+    currentPlayer = playerOne;
   }
 
   function getPlayerOne() {
@@ -40,21 +32,47 @@ const game = (function () {
     return playerTwo;
   }
 
+  function getCurrentPlayer() {
+    return currentPlayer;
+  }
+
   function getMarker() {
-    return currentMarker;
+    return currentPlayer.marker;
   }
 
-  function setTile(row, column) {
+  function resetGameBoard() {
+    board = [
+      new Array(3).fill(null),
+      new Array(3).fill(null),
+      new Array(3).fill(null),
+    ];
+  }
+
+  function getGameScore() {
+    return [playerOne.getScore(), playerTwo.getScore()];
+  }
+
+  function resetGameScore() {
+    playerOne.resetScore();
+    playerTwo.resetScore();
+  }
+
+  function changeTurn() {
+    turn++;
+    if (turn % 2 === 1) {
+      currentPlayer = playerOne;
+    } else {
+      currentPlayer = playerTwo;
+    }
+  }
+
+  function resetTurn() {
+    turn = 0;
+  }
+
+  function setTile(row, column, marker) {
     if (row > 2 || row < 0 || column > 2 || column < 0) return;
-    board[row][column] = currentMarker;
-  }
-
-  function logBoard() {
-    console.log(
-      `${board[0][0]} ${board[0][1]} ${board[0][2]}
-      \n${board[1][0]} ${board[1][1]} ${board[1][2]}
-      \n${board[2][0]} ${board[2][1]} ${board[2][2]}`
-    );
+    board[row][column] = marker;
   }
 
   function checkBoard() {
@@ -98,83 +116,153 @@ const game = (function () {
       return board[2][0];
     }
 
-    return "";
+    if (
+      board[0].includes(null) ||
+      board[1].includes(null) ||
+      board[2].includes(null)
+    ) {
+      return "NOTHING";
+    }
+
+    return "TIE";
   }
+
+  function handleTurn(row, column) {
+    setTile(row, column, currentPlayer.marker);
+    const result = checkBoard();
+    if (result === "X") {
+      playerOne.incrementScore();
+      resetGameBoard();
+    } else if (result === "O") {
+      playerTwo.incrementScore();
+      resetGameBoard();
+    } else if (result === "TIE") {
+      resetGameBoard();
+    }
+    changeTurn();
+    return result;
+  }
+
+  function logBoard() {
+    console.log(
+      `${board[0][0]} ${board[0][1]} ${board[0][2]}
+      \n${board[1][0]} ${board[1][1]} ${board[1][2]}
+      \n${board[2][0]} ${board[2][1]} ${board[2][2]}`
+    );
+  }
+
   return {
+    initiatePlayers,
     getPlayerOne,
     getPlayerTwo,
+    getCurrentPlayer,
     getMarker,
-    initiatePlayers,
+    getGameScore,
+    resetGameScore,
     resetGameBoard,
     changeTurn,
+    resetTurn,
     setTile,
-    logBoard,
     checkBoard,
+    handleTurn,
+    logBoard,
   };
 })();
 
 const displayController = (function () {
+  const playerOneNameInput = document.querySelector("#player-one-name");
+  const playerTwoNameInput = document.querySelector("#player-two-name");
+  const playerOneScore = document.querySelector("#player-one-score");
+  const playerTwoScore = document.querySelector("#player-two-score");
+
+  const startButton = document.querySelector("#start-button");
+  const restartButton = document.querySelector("#restart-button");
+
+  const alertDisplay = document.querySelector("#alerts");
+  const container = document.querySelector("#container");
+  const boardGrid = document.querySelector("#ttt-grid");
+
   function createTileCell(row, column) {
     const tileCell = document.createElement("div");
     tileCell.setAttribute("class", "grid-cell");
     tileCell.setAttribute("data-row", `${row}`);
     tileCell.setAttribute("data-column", `${column}`);
     tileCell.setAttribute("id", `${row * 3 + column}`);
-
     return tileCell;
   }
 
   function createBoardGrid() {
-    const boardGrid = document.createElement("div");
-    boardGrid.setAttribute("id", "ttt-grid");
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
         const tileCell = createTileCell(i, j);
         boardGrid.appendChild(tileCell);
       }
     }
-
-    return boardGrid;
   }
 
   function resetBoardDisplay() {
-    const container = document.querySelector("#container");
-    container.replaceChildren();
-    const boardGrid = createBoardGrid();
-    container.appendChild(boardGrid);
-
-    return boardGrid;
+    boardGrid.replaceChildren();
+    createBoardGrid();
   }
 
-  function checkGame() {
-    const alertDisplay = document.querySelector("#alerts");
-    const playerOneScore = document.querySelector("#player-one-score");
-    const playerTwoScore = document.querySelector("#player-two-score");
-    const result = game.checkBoard();
-    if (result !== "") {
-      if (result === "X") {
-        alertDisplay.textContent = `${game.getPlayerOne().name} wins`;
-        game.getPlayerOne().incrementScore();
-      } else {
-        alertDisplay.textContent = `${game.getPlayerTwo().name} wins`;
-        game.getPlayerTwo().incrementScore();
-      }
-      playerTwoScore.textContent = `${game.getPlayerTwo().getScore()}`;
-      playerOneScore.textContent = `${game.getPlayerOne().getScore()}`;
-      return true;
-    }
+  function clearAlerts() {
+    alertDisplay.textContent = "";
+  }
 
-    game.logBoard();
-    return false;
+  function handleNameInputs() {
+    if (game.getPlayerOne() == null || game.getPlayerTwo() == null) {
+      if (playerOneNameInput.value === "" || playerTwoNameInput.value === "") {
+        console.log("either name blank");
+        alertDisplay.textContent = "Enter Player Name/s";
+        playerOneNameInput.setAttribute(
+          "style",
+          "border: 1px solid red;"
+        );
+        playerTwoNameInput.setAttribute(
+          "style",
+          "border: 1px solid red;"
+        );
+        return false;
+      }
+
+      if (playerOneNameInput.value !== "" && playerTwoNameInput.value !== "") {
+        playerOneNameInput.removeAttribute("style");
+        playerTwoNameInput.removeAttribute("style");
+
+        game.initiatePlayers(
+          playerOneNameInput.value,
+          playerTwoNameInput.value
+        );
+      }
+    }
+    clearAlerts();
+    return true;
+  }
+
+  function clearNameInputs() {
+    playerOneNameInput.value = "";
+    playerTwoNameInput.value = "";
+  }
+
+  function updateScore() {
+    [playerOneScore.textContent, playerTwoScore.textContent] =
+      game.getGameScore();
+  }
+
+  function updateDisplay() {
+    updateScore();
+    alertDisplay.textContent = `${game.getCurrentPlayer().name}'s Turn`;
   }
 
   function activateDisplay() {
-    const boardGrid = document.querySelector("#ttt-grid");
+    let turnResult;
     boardGrid.addEventListener("click", (event) => {
+      if (turnResult === "X" || turnResult === "O" || turnResult === "TIE")
+        return;
       if (event.target.id === "ttt-grid") return;
       if (event.target.getAttribute("class") === "grid-cell X") return;
       if (event.target.getAttribute("class") === "grid-cell O") return;
-      
+
       const cellRow = Number(event.target.dataset.row);
       const cellColumn = Number(event.target.dataset.column);
 
@@ -182,57 +270,49 @@ const displayController = (function () {
       if (game.getMarker() === "X") event.target.classList.add("X");
       if (game.getMarker() === "O") event.target.classList.add("O");
 
-      game.setTile(cellRow, cellColumn, game.getMarker());
-      game.changeTurn();
+      turnResult = game.handleTurn(cellRow, cellColumn);
+      updateDisplay();
 
-      if (checkGame()) {
-        game.resetGameBoard();
+      if (turnResult === "X" || turnResult === "O" || turnResult === "TIE") {
+        if (turnResult === "X") {
+          alertDisplay.textContent = `${game.getPlayerOne().name} wins`;
+        } else if (turnResult === "O") {
+          alertDisplay.textContent = `${game.getPlayerTwo().name} wins`;
+        } else {
+          alertDisplay.textContent = "TIE";
+        }
       }
     });
   }
 
-  return { createBoardGrid, resetBoardDisplay, activateDisplay };
-})();
-
-displayController.resetBoardDisplay();
-
-const restartButton = document.querySelector("#restart-button");
-restartButton.addEventListener("click", () => {
-  displayController.resetBoardDisplay();
-  game.resetGameBoard();
-});
-
-const startButton = document.querySelector("#start-button");
-startButton.addEventListener("click", () => {
-  const playerOneNameInput = document.querySelector("#player-one-name");
-  const playerTwoNameInput = document.querySelector("#player-two-name");
-
-  if (game.playerOne == null || game.playerTwo == null) {
-    if (playerOneNameInput.value === "" || playerTwoNameInput.value === "") {
-      console.log("either name blank");
-      playerOneNameInput.setAttribute(
-        "style",
-        "background-color:red; color:white"
-      );
-      playerTwoNameInput.setAttribute(
-        "style",
-        "background-color:red; color:white;"
-      );
-      return;
-    }
-
-    if (playerOneNameInput.value !== "" && playerTwoNameInput.value !== "") {
-      playerOneNameInput.removeAttribute("style");
-      playerTwoNameInput.removeAttribute("style");
-      const playerOne = createPlayer(playerOneNameInput.value, "X");
-      const playerTwo = createPlayer(playerTwoNameInput.value, "O");
-
-      game.initiatePlayers(playerOne, playerTwo);
-      displayController.resetBoardDisplay();
-      displayController.activateDisplay();
-      console.log("game started");
-    }
+  function handleStart() {
+    startButton.addEventListener("click", () => {
+      if (handleNameInputs()) {
+        resetBoardDisplay();
+        activateDisplay();
+        updateDisplay();
+      }
+    });
   }
 
-  game.resetGameBoard();
-});
+  function handleRestart() {
+    restartButton.addEventListener("click", () => {
+      clearAlerts();
+      resetBoardDisplay();
+      clearAlerts();
+      game.resetGameScore();
+      updateDisplay();
+    });
+  }
+
+  function run() {
+    clearNameInputs();
+    createBoardGrid();
+    handleStart();
+    handleRestart();
+  }
+
+  return { run };
+})();
+
+displayController.run();

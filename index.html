@@ -11,22 +11,29 @@
     <div id="header">
       <button type="button" id="start-button">Start Game</button>
       <div id="scoreboard">
-        <div class="score-section" id="player-one">
-          <input type="text" id="player-one-name" />
-          <p id="player-one-score">0</p>
+        <input
+          type="text"
+          id="player-one-name"
+          placeholder="Enter Player Name"
+        />
+        <div class="score-section">
+          <p id="player-one-score" class="X">0</p>
+          <p class="dash">-</p>
+          <p id="player-two-score" class="O">0</p>
         </div>
-
-        <div class="score-section" id="player-two">
-          <p id="player-two-score">0</p>
-          <input type="text" id="player-two-name" />
-        </div>
+        <input
+          type="text"
+          id="player-two-name"
+          placeholder="Enter Player Name"
+        />
       </div>
-      <button type="button" id="restart-button">Restart</button>
-
+      <button type="button" id="restart-button">Reset Score</button>
     </div>
     <div id="alert-container">
       <p id="alerts"></p>
     </div>
-    <div id="container"></div>
+    <div id="container">
+      <div id="ttt-grid"></div>
+    </div>
   </body>
 </html>
