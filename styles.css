@@ -1,0 +1,124 @@
+/* CSS RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* line height not suitable for headings */
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* PROJECT CSS */
+#header {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+#header button {
+  min-width: fit-content;
+}
+
+#scoreboard {
+  display: flex;
+  gap: 100px
+}
+
+.score-section {
+  display: grid;
+  align-items: center;
+  gap: 20px;
+}
+
+.score-section#player-one {
+  grid-template-columns: 2fr 1fr;
+}
+
+#player-one-score,
+#player-two-score {
+  text-align: center;
+  background-color: white;
+}
+
+.score-section#player-two {
+  grid-template-columns: 1fr 2fr;
+}
+
+
+#container {
+  display: flex;
+  justify-content: center;
+  max-width: 500px;
+  margin: 25vh auto;
+}
+
+#ttt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(100px, 1fr));
+  grid-template-rows: repeat(3, minmax(100px, 1fr));
+  justify-content: center;
+  align-content: center;
+  gap: 10px;
+
+  background-color: black;
+}
+
+.grid-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  width: 100px;
+  background-color: white;
+
+}
+
+.X,
+.O {
+  font-weight: 800;
+  font-size: 4rem;
+}
+
+.X {
+  color: dodgerblue;
+}
+
+.O {
+  color: red;
+}
